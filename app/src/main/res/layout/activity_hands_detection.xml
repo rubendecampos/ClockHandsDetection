@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".HandsDetectionActivity">
+
+    <ImageView
+        android:id="@+id/ivPicture"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/nbrContours">
+    </ImageView>
+    <Button
+        android:id="@+id/btnCompute"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true"
+        android:text="COMPUTE" />
+    <Button
+        android:id="@+id/btnCaptureAgain"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/btnCompute"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:text="CAPTURE AGAIN" />
+    <TextView
+        android:id="@+id/nbrContours"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/nbrCircles" />
+    <TextView
+        android:id="@+id/nbrCircles"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/btnCompute"/>
+
+
+</RelativeLayout>
