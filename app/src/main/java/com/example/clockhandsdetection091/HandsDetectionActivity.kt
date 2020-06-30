@@ -3,28 +3,23 @@ package com.example.clockhandsdetection091
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
-import androidx.constraintlayout.solver.widgets.Rectangle
-import kotlinx.android.synthetic.main.activity_hands_detection.*
+import androidx.appcompat.app.AppCompatActivity
 import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
-import org.w3c.dom.Text
 import java.util.*
+
 
 class HandsDetectionActivity : AppCompatActivity() {
 
     val TAG = "HandsDetectionActivity"
-    val MIN_CONTOURS_AREA = 30
-    val RECT_X_PADDING = 300.0
-    val RECT_Y_PADDING = 300.0
-    val MATRICE_ROW = 3
-    val MATRICE_COL = 2
+    val MIN_CONTOURS_AREA = 10
+    val MATRICE_ROW = 8
+    val MATRICE_COL = 3
 
     var ivPicture: ImageView? = null
     var nbrContours: TextView? = null
@@ -88,7 +83,29 @@ class HandsDetectionActivity : AppCompatActivity() {
         Imgproc.findContours(threshold,contours,hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE)
         findCirclesInContours(contours,circles)
         // Get the circles that are most likely to be clock centers
-        findClockCenter(circles,clockCenters)
+        findClockCenter(out!!,circles,clockCenters)
+
+        /*val src = Mat(4, 1, CvType.CV_32FC2)
+        val p1 = IntArray(2,init = {clockCenters.get(0)[0].toInt();clockCenters.get(0)[1].toInt()})
+        val p2 = IntArray(2,init = {clockCenters.get(2)[0].toInt();clockCenters.get(2)[1].toInt()})
+        val p3 = IntArray(2,init = {clockCenters.get(21)[0].toInt();clockCenters.get(21)[1].toInt()})
+        val p4 = IntArray(2,init = {clockCenters.get(23)[0].toInt();clockCenters.get(23)[1].toInt()})
+        src.put(0,0,p1)
+        src.put(1,0,p2)
+        src.put(2,0,p3)
+        src.put(3,0,p4)
+        val dst = Mat(4, 1, CvType.CV_32FC2)
+        dst.put(0,0,IntArray(2,init = {0;0}))
+        dst.put(1,0,IntArray(2,init = {0;out!!.width()}))
+        dst.put(2,0,IntArray(2,init = {out!!.height();0}))
+        dst.put(3,0,IntArray(2,init = {out!!.height();out!!.width()}))
+
+        val perspectiveTransform = Imgproc.getPerspectiveTransform(src, dst)
+        Imgproc.warpPerspective(out,out,perspectiveTransform,out!!.size())*/
+
+        //------------------------------------------------------------------------------------
+        // Warping the picture to get only the matrice of clock
+        //------------------------------------------------------------------------------------
 
         //------------------------------------------------------------------------------------
         // Display the result
@@ -156,30 +173,29 @@ class HandsDetectionActivity : AppCompatActivity() {
     //------------------------------------------------------------------------------------
     // From the given list of circles, get the ones that are most likely to be clock
     // centers.
-    // For that we draw a virtual representation of the matrice with clock centers, then
-    // get the closest circles to these centers.
+    // For that we draw a virtual representation of where the matrice should be with its
+    // clock centers, then get the closest circles to these centers.
     //------------------------------------------------------------------------------------
-    fun findClockCenter(inList: LinkedList<DoubleArray>, outList: LinkedList<DoubleArray>){
+    fun findClockCenter(dst: Mat,inList: LinkedList<DoubleArray>,outList: LinkedList<DoubleArray>){
         // Draw the rectangle
-        val topRight = Point(out!!.width()!!.toDouble()-RECT_X_PADDING,RECT_Y_PADDING)
-        val botLeft = Point(RECT_X_PADDING,out!!.height()!!.toDouble()-RECT_Y_PADDING)
-        val rect = Rect(topRight,botLeft)
+        val centerGap = dst.height()/(MATRICE_ROW).toDouble()  // Supposed gap between two center
+        val matriceWidth = centerGap*MATRICE_COL
+        val margeX = (dst.width()-matriceWidth)/2
         //Imgproc.rectangle(out,rect,Scalar(0.0,0.0,255.0),20)
         // From the number of col and row of the matrice, draw all the clock center circles
         // in the rectangle
         val circlesMatrice = LinkedList<Point>()
         for(row in 0 until MATRICE_ROW){
             for(col in 0 until MATRICE_COL){
-                var distX = rect.width/(MATRICE_COL*2).toDouble()
-                var distY = rect.height/(MATRICE_ROW*2).toDouble()
-                distX = col*2*distX + distX + botLeft.x
-                distY = row*2*distY + distY + topRight.y
+
+                var distX = col*centerGap + centerGap/2 + margeX
+                var distY = row*centerGap + centerGap/2
                 var center = Point(distX,distY)
                 circlesMatrice.addLast(center)
-                //Imgproc.circle(out,center,20,
-                  //  Scalar(0.0,0.0,255.0), 20)
+                Imgproc.circle(out,center,20,
+                    Scalar(0.0,0.0,255.0), 20)
                 // Get the closest circle from this center
-                var minDist = rect.width.toDouble()
+                var minDist = matriceWidth
                 var bestCenter: DoubleArray? = null
                 for(i in 0 until inList.size) {
                     var tempDist = distance2Points(center,
