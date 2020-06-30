@@ -157,7 +157,7 @@ class HandsDetectionActivity : AppCompatActivity() {
     // From the given list of circles, get the ones that are most likely to be clock
     // centers.
     // For that we draw a virtual representation of the matrice with clock centers, then
-    // get the closest circles to these centers
+    // get the closest circles to these centers.
     //------------------------------------------------------------------------------------
     fun findClockCenter(inList: LinkedList<DoubleArray>, outList: LinkedList<DoubleArray>){
         // Draw the rectangle
