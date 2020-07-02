@@ -12,10 +12,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/btnCapture">
-        <ImageView
-            android:id="@+id/ivOnLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
     </FrameLayout>
     <Button
         android:id="@+id/btnCapture"

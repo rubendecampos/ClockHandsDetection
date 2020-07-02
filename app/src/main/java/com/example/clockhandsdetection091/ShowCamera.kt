@@ -10,6 +10,11 @@ import java.io.IOException
 class ShowCamera(context: Context?, var camera: Camera) :
     SurfaceView(context), SurfaceHolder.Callback {
 
+    init {
+        var holder = holder
+        holder.addCallback(this)
+    }
+
     override fun surfaceChanged(
         holder: SurfaceHolder,
         format: Int,
@@ -47,10 +52,5 @@ class ShowCamera(context: Context?, var camera: Camera) :
         } catch (e: IOException) {
             e.printStackTrace()
         }
-    }
-
-    init {
-        var holder = holder
-        holder.addCallback(this)
     }
 }
