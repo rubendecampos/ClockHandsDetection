@@ -4,10 +4,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import org.opencv.android.Utils
 import org.opencv.core.*
@@ -20,24 +17,26 @@ class HandsDetectionActivity : AppCompatActivity() {
 
     val TAG = "HandsDetectionActivity"
     val MIN_CONTOURS_AREA = 1
-    val MATRICE_ROW = 14
-    val MATRICE_COL = 6
+    var MATRICE_ROW = 3
+    var MATRICE_COL = 2
     var out: Mat? = null
 
-    var ivPicture: ImageView? = null
-    var nbrContours: TextView? = null
-    var nbrCircles: TextView? = null
+    lateinit var ivPicture: ImageView
+    lateinit var nbrContours: TextView
+    lateinit var nbrCircles: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_hands_detection)
 
-        var btnCaptureAgain: Button = findViewById(R.id.btnCaptureAgain)
         var btnCompute: Button = findViewById(R.id.btnCompute)
         nbrContours = findViewById(R.id.nbrContours)
         nbrCircles = findViewById(R.id.nbrCircles)
         ivPicture = findViewById(R.id.ivPicture)
+
         val intent = intent
+        MATRICE_ROW = intent.getStringExtra("nbrRow").toInt()
+        MATRICE_COL = intent.getStringExtra("nbrCol").toInt()
         val filePath = intent.getStringExtra("filePath")
         val bmp = BitmapFactory.decodeFile(filePath)
 
@@ -45,12 +44,6 @@ class HandsDetectionActivity : AppCompatActivity() {
         var bmpMatrice = Tools.transformRectPerspective(bmp,
             MATRICE_COL/MATRICE_ROW.toDouble())
         ivPicture!!.setImageBitmap(bmpMatrice)
-
-        // On the btnCaptureAgain click, start the MainActivity again
-        btnCaptureAgain.setOnClickListener({
-            val newIntent = Intent(this,MainActivity::class.java)
-            startActivity(newIntent)
-        })
 
         // On the btnCompute click, start the detection
         btnCompute.setOnClickListener({

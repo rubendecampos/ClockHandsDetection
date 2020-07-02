@@ -1,34 +1,34 @@
 package com.example.clockhandsdetection091
 
+import android.app.Activity
 import android.content.Intent
-import android.graphics.BitmapFactory
-import android.hardware.Camera
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
-import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import kotlinx.android.synthetic.main.activity_main.*
 import org.opencv.android.OpenCVLoader
-import org.w3c.dom.Text
 import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
+
 
 class MainActivity : AppCompatActivity() {
 
     val TAG = "MainActivity"
+    val REQUEST_IMAGE_CAPTURE = 1
 
-    var camera: Camera? = null
-    var frameLayout: FrameLayout? = null
     var btnCapture: Button? = null
-    var btnCompute: Button? = null
-    var btnCaptureAgain: Button? = null
-    var ivPicture: ImageView? = null
-    var showCamera: ShowCamera? = null
-    var picture_file: File? = null
-    var text: TextView? = null
+    var txtCol: EditText? = null
+    var txtRow: EditText? = null
+    lateinit var currentPicturePath: String
+    lateinit var nbrCol: String
+    lateinit var nbrRow: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,57 +40,58 @@ class MainActivity : AppCompatActivity() {
         }else{
             Log.e(TAG, "OpenCV init failed")
         }
-        Toast.makeText(this, "Take a picture of the matrice", Toast.LENGTH_LONG).show()
 
         btnCapture = findViewById(R.id.btnCapture)
-        frameLayout = findViewById(R.id.frameLayout)
-        text = findViewById(R.id.text)
+        txtCol = findViewById(R.id.txtCol)
+        txtRow = findViewById(R.id.txtRow)
 
-        //Open the camera and show it on the frameLayout
-        camera = Camera.open()
-        showCamera = ShowCamera(this,camera!!)
-        frameLayout!!.addView(showCamera)
+        // On click on the capture Button
+        btnCapture?.setOnClickListener {
+            // Request the permission to use the camera if not already granted
+            if(ContextCompat.checkSelfPermission(this,android.Manifest.permission.CAMERA) !=
+                PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(this, Array<String>(1, init =
+                {android.Manifest.permission.CAMERA}), 100)
+            }
 
-        btnCapture?.setOnClickListener({
-            captureImage(showCamera!!)
-        })
+            // create and start the intent to take a picture
+            var intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            val picture_file = try{
+                getOutputMediaFile()
+            }catch(e: IOException){
+                // Error occured while creating the File
+                null
+            }
+            // Continue only if the File was created successfully
+            picture_file?.also {
+                val pictureUri = FileProvider.getUriForFile(this,
+                    "com.example.android.fileprovider",it)
+                intent.putExtra(MediaStore.EXTRA_OUTPUT,pictureUri)
+                startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
+            }
 
-    }
-
-    //------------------------------------------------------------------------------------
-    // Capture an image
-    //------------------------------------------------------------------------------------
-    private fun captureImage(view: View){
-        if(camera != null){
-            camera!!.takePicture(null,null,mPictureCallback)
+            //Get the nbr of row and col of the matrice
+            nbrCol = txtCol!!.text.toString()
+            nbrRow = txtRow!!.text.toString()
         }
     }
 
     //------------------------------------------------------------------------------------
-    // Callback method of the taken picture ( captureImage() )
-    // Save the picture in an external directory
+    // On the activity result, switch to the next activity.
     //------------------------------------------------------------------------------------
-    var mPictureCallback: Camera.PictureCallback = Camera.PictureCallback(
-        function = {data: ByteArray, camera:Camera ->
-            picture_file = getOutputMediaFile()
-
-            if(picture_file != null){
-                try {
-                    var fos = FileOutputStream(picture_file)
-                    fos.write(data)
-                    Toast.makeText(this, "Saved in: "+picture_file.toString(),
-                        Toast.LENGTH_LONG).show()
-                    fos.close()
-                    //camera.startPreview()
-                }catch (e: IOException){
-                    e.printStackTrace()
-                }
-
-                var intent = Intent(this,HandsDetectionActivity::class.java)
-                intent.putExtra("filePath",picture_file!!.absolutePath)
-                startActivity(intent)
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            REQUEST_IMAGE_CAPTURE -> if (resultCode == Activity.RESULT_OK) {
+                // Start the next Activity
+                var nextActivity = Intent(this,HandsDetectionActivity::class.java)
+                nextActivity.putExtra("filePath",currentPicturePath)
+                nextActivity.putExtra("nbrRow",nbrRow)
+                nextActivity.putExtra("nbrCol",nbrCol)
+                startActivity(nextActivity)
             }
-        })
+        }
+    }
 
     //------------------------------------------------------------------------------------
     // Get the output file
@@ -98,16 +99,14 @@ class MainActivity : AppCompatActivity() {
     private fun getOutputMediaFile(): File? {
         var state = Environment.getExternalStorageState()
         if(state.equals(Environment.MEDIA_MOUNTED)) {
-            var folder_gui = File(
-                getExternalFilesDir(Environment.DIRECTORY_PICTURES).toString()
-                        + File.separator + "GUI"
-            )
-            //If the file doesn't exist, create it
-            if (!folder_gui.exists()) {
-                folder_gui.mkdirs()
+            var storageDir = File(getExternalFilesDir(Environment.DIRECTORY_PICTURES).toString())
+            // Create the File
+            var outputFile = File(storageDir,
+                "temp.jpg").apply()
+            {
+                // Save the path for use with ACTION_VIEW intents
+                currentPicturePath = absolutePath
             }
-
-            var outputFile = File(folder_gui, "temp.jpg")
             return outputFile
         }else{
             return null

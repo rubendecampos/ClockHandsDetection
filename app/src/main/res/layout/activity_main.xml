@@ -7,18 +7,48 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.example.clockhandsdetection091.MainActivity">
 
-    <FrameLayout
-        android:id="@+id/frameLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/btnCapture">
-    </FrameLayout>
+    <LinearLayout
+        android:id="@+id/lytCol"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_centerInParent="true">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="#columns: "/>
+        <EditText
+            android:id="@+id/txtCol"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:text="3"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/lytCol">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="#rows: "/>
+        <EditText
+            android:id="@+id/txtRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:text="8"/>
+    </LinearLayout>
+
     <Button
         android:id="@+id/btnCapture"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="70dp"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
-        android:text="CAPTURE" />
+        android:text="START CALIBRATION" />
 
 </RelativeLayout>
