@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ClockHandsDetection091</string>
+    <string name="compute">COMPUTE</string>
+    <string name="calibrate">CALIBRATE</string>
 </resources>

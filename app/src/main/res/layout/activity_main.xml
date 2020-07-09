@@ -8,6 +8,24 @@
     tools:context="com.example.clockhandsdetection091.MainActivity">
 
     <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_centerHorizontal="true"
+        android:layout_above="@+id/lytCol">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="#rows: "/>
+        <EditText
+            android:id="@+id/txtRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:text="6"/>
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/lytCol"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -22,31 +40,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:inputType="number"
-            android:text="3"/>
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@+id/lytCol">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="#rows: "/>
-        <EditText
-            android:id="@+id/txtRow"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:text="8"/>
+            android:text="14"/>
     </LinearLayout>
 
     <Button
         android:id="@+id/btnCapture"
         android:layout_width="match_parent"
-        android:layout_height="70dp"
+        android:layout_height="100dp"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
         android:text="START CALIBRATION" />
