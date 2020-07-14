@@ -1,6 +1,7 @@
-package com.example.clockhandsdetection091
+package com.example.clockhandsdetection091.utils
 
 import android.graphics.Bitmap
+import com.example.clockhandsdetection091.Line
 import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
@@ -31,7 +32,8 @@ class Tools {
                     contours[i].convertTo(contour, CvType.CV_32F)
                     Imgproc.minEnclosingCircle(contour, center, radius)
 
-                    //Calculate the area of the enclosing circle and get the actual area of the contour
+                    //Calculate the area of the enclosing circle and get the actual area
+                    // of the contour
                     val circleArea = Math.PI * radius[0] * radius[0]
                     val contourArea = Imgproc.contourArea(contour)
 
@@ -58,6 +60,19 @@ class Tools {
         //------------------------------------------------------------------------------------
         fun distance2Points(pt1:Point, pt2:Point): Double{
             return sqrt((pt2.x - pt1.x).pow(2.0) + (pt2.y - pt1.y).pow(2.0))
+        }
+
+        //------------------------------------------------------------------------------------
+        // Return the angle between two hands.
+        //------------------------------------------------------------------------------------
+        fun handsAngle(hand1: Int, hand2: Int): Int{
+            var angle = abs(hand1 - hand2)
+            // Calculate the smaller angle
+            if(angle > 180){
+                angle = 360-angle
+            }
+
+            return angle
         }
 
         //------------------------------------------------------------------------------------
@@ -106,12 +121,14 @@ class Tools {
             val canny = Mat(grayMat.height(),grayMat.width(), CvType.CV_8UC4)
             //Imgproc.threshold(grayMat, threshold,127.0,255.0, Imgproc.THRESH_BINARY_INV)
             Imgproc.Canny(grayMat,canny,10.0,100.0)
-            val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(6.0,6.0))
+            val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
+                Size(6.0,6.0))
             Imgproc.morphologyEx(canny,canny,Imgproc.MORPH_DILATE,kernel)
 
             val contours:List<MatOfPoint> = ArrayList<MatOfPoint>()
             val hierarchy = Mat()
-            Imgproc.findContours(canny,contours,hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE)
+            Imgproc.findContours(canny,contours,hierarchy, Imgproc.RETR_EXTERNAL,
+                Imgproc.CHAIN_APPROX_SIMPLE)
 
             //Get the biggest contour
             var area = 0.0
@@ -131,7 +148,8 @@ class Tools {
             val approxDistance = Imgproc.arcLength(contour2f, true) * 0.02
             Imgproc.approxPolyDP(contour2f, approxRect, approxDistance, true)
 
-            // Get the 4 corners points and put them in a Mat var, they need to be ordered correctly.
+            // Get the 4 corners points and put them in a Mat var, they need to be ordered
+            // correctly.
             // To ordered them, I check the two point in the upper part of the picture and set them
             // as topLeft and topRight, same for the lower part.
             val corners = Mat(4,1,CvType.CV_32FC2)
@@ -204,12 +222,12 @@ class Tools {
                 var angleLine = 0.0
 
                 //which point is the furthest from the center?
-                if(distance2Points(center,pt1)>distance2Points(center,pt2)){
-                    angleLine = angleClockwise(pt2,pt1)
-                    angleCenter = angleClockwise(center,pt1)
+                if(distance2Points(center, pt1) > distance2Points(center, pt2)){
+                    angleLine = angleClockwise(pt2, pt1)
+                    angleCenter = angleClockwise(center, pt1)
                 }else{
-                    angleLine = angleClockwise(pt1,pt2)
-                    angleCenter = angleClockwise(center,pt2)
+                    angleLine = angleClockwise(pt1, pt2)
+                    angleCenter = angleClockwise(center, pt2)
                 }
 
                 //Calculate the difference
@@ -246,11 +264,12 @@ class Tools {
                 val p1 = lines[lineIndex].p1
                 val p2 = lines[lineIndex].p2
                 // The angle range is from 0 to 180 and not 360
-                var angle = 0.0
+                var angle: Double
                 if(p2.x < p1.x){
-                    angle = angleClockwise(p2,p1)
+                    angle =
+                        angleClockwise(p2, p1)
                 }else{
-                    angle = angleClockwise(p1,p2)
+                    angle = angleClockwise(p1, p2)
                 }
 
                 // First line? goes directly in mergedLines list
@@ -266,44 +285,38 @@ class Tools {
                         val p2Merged = mergedLines[mergeIndex].p2
                         var angleMerged = 0.0
                         if(p2Merged.x < p1Merged.x){
-                            angleMerged = angleClockwise(p2Merged,p1Merged)
+                            angleMerged = angleClockwise(p2Merged, p1Merged)
                         }else{
-                            angleMerged = angleClockwise(p1Merged,p2Merged)
+                            angleMerged = angleClockwise(p1Merged, p2Merged)
                         }
 
-                        // Check if the angles match with a tolerance and if this lines is not
-                        // already merged
+                        // Check if the angles match and if this lines is not already merged
                         if(angle > angleMerged-angleTolerance &&
                             angle < angleMerged+angleTolerance && !merged){
 
-                            // Now check if two points from both lines are close by.
-                            var maxDist = 0.0
-                            var closeBy = false
-                            val tempLinesDist = MutableList(4,init = {Line(p1, p1Merged) })
-                            tempLinesDist[0] = Line(p1,p1Merged)
-                            tempLinesDist[1] = Line(p1,p2Merged)
-                            tempLinesDist[2] = Line(p2,p1Merged)
-                            tempLinesDist[3] = Line(p2,p2Merged)
-                            var newLine = Line()
-
-                            // Check the min distance and get the two extreme points for the
-                            // merged line.
-                            for(i in tempLinesDist.indices){
-                                if(lengthLine(tempLinesDist[i]) < distTolerance){
-                                    closeBy = true
+                            // Now check if two points from both lines are close by, and if the
+                            // other two points are far away (at least the length of both lines).
+                            var minMergedDist = lengthLine(mergedLines[mergeIndex]) +
+                                    lengthLine(lines[lineIndex]) - distTolerance
+                            if(distance2Points(p1, p1Merged) < distTolerance){
+                                if(distance2Points(p2, p2Merged) > minMergedDist){
+                                    mergedLines[mergeIndex] = Line(p2, p2Merged)
+                                    merged = true
                                 }
-                                if(lengthLine(tempLinesDist[i]) > maxDist){
-                                    maxDist = lengthLine(tempLinesDist[i])
-                                    newLine = tempLinesDist[i]
+                            }else if(distance2Points(p1, p2Merged) < distTolerance){
+                                if(distance2Points(p2, p1Merged) > minMergedDist){ mergedLines[mergeIndex] = Line(p2, p1Merged)
+                                    merged = true
                                 }
-                            }
-
-                            // the line must be close to each other, but the extreme points must be
-                            // at least further than both lines length.
-                            if(closeBy){
-                                // change the actual merged line in the list with the new line.
-                                mergedLines[mergeIndex] = newLine
-                                merged = true
+                            }else if(distance2Points(p2, p1Merged) < distTolerance){
+                                if(distance2Points(p1, p2Merged) > minMergedDist){
+                                    mergedLines[mergeIndex] = Line(p1, p2Merged)
+                                    merged = true
+                                }
+                            }else if(distance2Points(p2, p2Merged) < distTolerance){
+                                if(distance2Points(p1, p1Merged) > minMergedDist){
+                                    mergedLines[mergeIndex] = Line(p1, p1Merged)
+                                    merged = true
+                                }
                             }
                         }
                     }
@@ -315,6 +328,65 @@ class Tools {
             }
 
             return mergedLines
+        }
+
+        //------------------------------------------------------------------------------------
+        // Find the intersection of two lines by calculating their linear function and
+        // calculating the intersection point.
+        // If parallel lines, return null
+        //------------------------------------------------------------------------------------
+        fun intersection(line1: Line, line2: Line): Point?{
+            //------------------------------------------------------
+            // Equation for line1 -> y = ax + b
+            //------------------------------------------------------
+            var a: Double
+            var b: Double
+            // Is the curb ascending?
+            if((line1.p2.y-line1.p1.y)*(line1.p2.x-line1.p1.x) > 0){
+                a = 1.0     // ascending
+            }else{
+                a = -1.0    // descending
+            }
+            // deltaX must not be 0
+            var deltaX = abs(line1.p2.x-line1.p1.x)
+            if(deltaX == 0.0)
+                deltaX = 0.0001
+            // Calculate a (a = deltaY/deltaX) and b (b = y2 - ax2)
+            a = a * abs(line1.p2.y-line1.p1.y) / deltaX
+            b = line1.p2.y - a*line1.p2.x
+
+            //------------------------------------------------------
+            // Equation for line2 -> y = cx + d
+            //------------------------------------------------------
+            var c: Double
+            var d: Double
+            // Is the curb ascending?
+            if((line2.p2.y-line2.p1.y)*(line2.p2.x-line2.p1.x) > 0){
+                c = 1.0     // ascending
+            }else{
+                c = -1.0    // descending
+            }
+            // deltaX must not be 0
+            deltaX = abs(line2.p2.x-line2.p1.x)
+            if(deltaX == 0.0)
+                deltaX = 0.0001
+            // Calculate c (c = deltaY/deltaX) and d (d = y2 - ax2)
+            c = c * abs(line2.p2.y-line2.p1.y) / deltaX
+            d = line2.p2.y - c*line2.p2.x
+
+            //------------------------------------------------------
+            // Find the intersection -> xi = (d-b)/(a-c)
+            //                          yi = axi + b
+            //------------------------------------------------------
+            // If a-c = 0, the lines are parallel. Return null.
+            var ac = a-c
+            if(ac == 0.0){
+                return null
+            }else{
+                val xi = (d-b)/ac
+                val yi = a*xi + b
+                return Point(xi,yi)
+            }
         }
     }
 }

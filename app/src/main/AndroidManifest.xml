@@ -14,15 +14,15 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".CommunicationActivity"
+            android:name=".activities.ResultActivity"
             android:screenOrientation="landscape"
             tools:ignore="LockedOrientationActivity"></activity>
         <activity
-            android:name=".HandsDetectionActivity"
+            android:name=".activities.CalibrationActivity"
             android:screenOrientation="landscape"
             tools:ignore="LockedOrientationActivity"/>
         <activity
-            android:name=".MainActivity"
+            android:name=".activities.MainActivity"
             android:screenOrientation="landscape"
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
