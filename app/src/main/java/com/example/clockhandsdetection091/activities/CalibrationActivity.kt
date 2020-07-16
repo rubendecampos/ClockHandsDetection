@@ -22,6 +22,7 @@ import androidx.core.content.FileProvider
 import com.example.clockhandsdetection091.*
 import com.example.clockhandsdetection091.enumeration.Event
 import com.example.clockhandsdetection091.utils.Calibration
+import com.example.clockhandsdetection091.utils.HandsDetection
 import com.example.clockhandsdetection091.utils.Tools
 import org.opencv.android.Utils
 import org.opencv.core.*
@@ -51,6 +52,7 @@ class CalibrationActivity : AppCompatActivity() {
     var clockArray: Clocks? = null
     var calibrate: Calibration? = null
     var currentPicturePath: String = ""
+    var isComputed = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,16 +85,21 @@ class CalibrationActivity : AppCompatActivity() {
         btnCompute.setOnClickListener{
             centersDetection()
             handsDetection()
+            isComputed = true
         }
 
         // On the btnAngle click, put in extra the detected angles and the action to do for the
         // matrice.
         btnCalibrate.setOnClickListener{
-            val actionJSON = calibrate!!.calibration(clockArray!!)
-            val sendAction = Intent(this, ResultActivity::class.java)
-            sendAction.putExtra("calibrate",clockArray.toString())
-            sendAction.putExtra("action",actionJSON)
-            startActivity(sendAction)
+            if(isComputed){
+                val actionJSON = calibrate!!.calibration(clockArray!!)
+                val sendAction = Intent(this, ResultActivity::class.java)
+                sendAction.putExtra("clock array",clockArray.toString())
+                sendAction.putExtra("action",actionJSON.toString())
+                startActivity(sendAction)
+            }else{
+                Toast.makeText(this,"Please compute first",Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -449,6 +456,7 @@ class CalibrationActivity : AppCompatActivity() {
             return true
         }else if(id == R.id.action_detect_hands){
             handsDetection()
+            isComputed = true
             return true
         }
 

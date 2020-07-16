@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/white"
     tools:context=".activities.CalibrationActivity">
 
     <ImageView
@@ -36,6 +37,9 @@
                 android:id="@+id/btnPicture"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@color/grey"
+                android:textColor="@color/white"
+                android:layout_margin="5dp"
                 android:text="@string/picture"/>
         </LinearLayout>
         <LinearLayout
@@ -46,6 +50,9 @@
                 android:id="@+id/btnCompute"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@color/grey"
+                android:textColor="@color/white"
+                android:layout_margin="5dp"
                 android:text="@string/compute" />
         </LinearLayout>
         <LinearLayout
@@ -56,6 +63,9 @@
                 android:id="@+id/btnCalibrate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@color/grey"
+                android:textColor="@color/white"
+                android:layout_margin="5dp"
                 android:text="@string/calibrate"  />
         </LinearLayout>
     </LinearLayout>

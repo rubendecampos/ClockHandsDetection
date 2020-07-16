@@ -3,6 +3,8 @@ package com.example.clockhandsdetection091.utils
 import com.example.clockhandsdetection091.Clocks
 import com.example.clockhandsdetection091.enumeration.Event
 import com.example.clockhandsdetection091.enumeration.State
+import org.json.JSONArray
+import org.json.JSONObject
 
 class Calibration(matriceSize: Int) {
 
@@ -10,13 +12,18 @@ class Calibration(matriceSize: Int) {
     private var previousState = State.INIT
     var clockEvents = MutableList(matriceSize, init = {Event.EvDefault})
 
-    fun calibration(clockArray: Clocks): String{
-        var actions = ""
+    fun calibration(clockArray: Clocks): JSONObject{
+        var clocksArrayJSON = JSONArray()
 
         for(i in 0 until clockArray.clocks.size){
             val clock = clockArray.clocks[i]
             val oldClock = oldClocks.clocks[i]
             val event = clockEvents[i]
+
+            // Create the json object that'll be send
+            var clockObject = JSONObject()
+            clockObject.put("hand1",0)
+            clockObject.put("hand2",0)
 
             // Transition switch
             when(clock.state){
@@ -88,9 +95,9 @@ class Calibration(matriceSize: Int) {
                                 clock.angle1,
                                 clock.angle2
                             ) > 150){
-                            actions += "Clock "+i+": "+"hand 1 -> 45° / hand 2 -> 0°\n"
+                            clockObject.put("hand1",45)
                         }else{
-                            actions += "Clock "+i+": "+"hand 1 -> 180° / hand 2 -> 0°\n"
+                            clockObject.put("hand1",180)
                         }
 
                         // Generate the default event
@@ -138,15 +145,15 @@ class Calibration(matriceSize: Int) {
 
                         // If the hands are correctly detected, init them to 0.
                         if(clock.calibrated){
-                            actions += "Clock "+i+": "+"hand 1 -> "+(360-clock.angle1).toString()+
-                                    " / hand 2 -> "+(360-clock.angle2).toString() + "\n"
+                            clockObject.put("hand1",360-clock.angle1)
+                            clockObject.put("hand2",360-clock.angle2)
                         }
                     }
                     //-----------------------------------------------------------------------------
                     State.TOO_CLOSE -> {
                         // The hands are to close to be detected correctly.
                         // Move one hand (except if this clock was already calibrated).
-                        actions += "Clock "+i+": "+"hand 1 -> 180° / hand 2 -> 0°\n"
+                        clockObject.put("hand1",180)
 
                         // Generate the default event
                         clockEvents[i] = Event.EvDefault
@@ -161,10 +168,14 @@ class Calibration(matriceSize: Int) {
                     }
                 }
             }
+
+            clocksArrayJSON.put(clockObject)
         }
 
         clockArray.copyTo(oldClocks)
+        var jsonObject = JSONObject()
+        jsonObject.put("clocks",clocksArrayJSON)
 
-        return actions
+        return jsonObject
     }
 }
