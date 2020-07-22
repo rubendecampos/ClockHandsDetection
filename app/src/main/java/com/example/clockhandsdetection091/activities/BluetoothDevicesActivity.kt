@@ -2,14 +2,20 @@ package com.example.clockhandsdetection091.activities
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.content.BroadcastReceiver
 import android.content.Intent
-import android.content.IntentFilter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.*
 import com.example.clockhandsdetection091.R
 
+/**
+ * Activity to chose a paired device to be connected to.
+ * @property [arrayAdapter] to adapt the list of devices for the ListView object.
+ * @property [bluetoothAdapter] to get all the bonded (paired) bluetooth devices.
+ * @property [deviceList] list of all the bluetooth devices.
+ * @property [socket] SerialSocket object used to communicate with the connected device.
+ * @author Ruben De Campos
+ */
 class BluetoothDevicesActivity : AppCompatActivity() {
 
     lateinit var listViewDevices: ListView
@@ -20,6 +26,9 @@ class BluetoothDevicesActivity : AppCompatActivity() {
     private var deviceList: ArrayList<BluetoothDevice> = ArrayList()
     private var socket: SerialSocket? = null
 
+    /**
+     * On the activity destruction.
+     */
     override fun onDestroy() {
         super.onDestroy()
 
@@ -28,6 +37,9 @@ class BluetoothDevicesActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * On the activity creation.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bluetooth_devices)
@@ -35,6 +47,7 @@ class BluetoothDevicesActivity : AppCompatActivity() {
         listViewDevices = findViewById(R.id.devicesList)
         btnRefresh = findViewById(R.id.btnRefresh)
 
+        // On btn refresh click
         btnRefresh.setOnClickListener {
             if (bluetoothAdapter == null) {
                 Toast.makeText(

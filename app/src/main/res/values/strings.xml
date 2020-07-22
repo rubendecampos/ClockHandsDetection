@@ -6,4 +6,17 @@
     <string name="find_product">FIND PRODUCT</string>
     <string name="refresh">REFRESH</string>
     <string name="start_calibration">START CALIBRATION</string>
+    <string name="animation_1">ANIMATION 1</string>
+    <string name="animation_4">ANIMATION 4</string>
+    <string name="animation_3">ANIMATION 3</string>
+    <string name="animation_2">ANIMATION 2</string>
+    <string name="send_text">SEND TEXT</string>
+    <string name="hypnosia">Hypnosia</string>
+    <string name="plus">+</string>
+    <string name="minus">-</string>
+    <string name="column_index">Column index:</string>
+    <string name="row_index">Row index:</string>
+    <string name="hand_index">Watchpointer index:</string>
+    <string name="reset">RESET</string>
+    <string name="go_to_zero">GO TO ZERO</string>
 </resources>

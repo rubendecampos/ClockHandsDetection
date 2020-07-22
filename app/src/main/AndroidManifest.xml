@@ -39,7 +39,7 @@
             tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".activities.MainActivity"
-            android:screenOrientation="landscape"
+            android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity" />
 
         <provider

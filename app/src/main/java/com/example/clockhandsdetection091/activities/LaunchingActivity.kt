@@ -1,16 +1,21 @@
 package com.example.clockhandsdetection091.activities
 
 import android.content.Intent
-import android.content.res.Resources
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.clockhandsdetection091.R
 
-
+/**
+ * First activity to show when the app is started.
+ * @author Ruben De Campos
+ */
 class LaunchingActivity : AppCompatActivity() {
 
+    /**
+     * On the activity creation.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_launching)

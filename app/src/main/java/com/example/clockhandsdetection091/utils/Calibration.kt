@@ -6,24 +6,31 @@ import com.example.clockhandsdetection091.enumeration.State
 import org.json.JSONArray
 import org.json.JSONObject
 
-class Calibration(matriceSize: Int) {
+/**
+ * Class used for the calibration of each clocks of the matrice device.
+ * @property [clockEvents] contain the event that will be processed every calibration() calls.
+ * @property [previousState] contain the previous state of each clock.
+ * @property [oldClocks] contain the old clock array. Of the previous calibration call.
+ * @author Ruben De Campos
+ */
+class Calibration(matriceSize: Int, var jsonString: String) {
 
     private var oldClocks: Clocks = Clocks(matriceSize)
-    private var previousState = State.INIT
+    private var previousState = MutableList(matriceSize, init = {State.INIT})
     var clockEvents = MutableList(matriceSize, init = {Event.EvDefault})
 
-    fun calibration(clockArray: Clocks): JSONObject{
-        var clocksArrayJSON = JSONArray()
+    /**
+     * calibrate all the clocks to their position 0. It process each clocks "state machine".
+     * @param [clockArray] the clockArray object that contain the list of all the clocks
+     * @return contain the actions for the device to do (ex: rotating hand1 by 45°)
+     */
+    fun calibrate(clockArray: Clocks): JSONObject{
+        var arrayJSON = JSONArray(jsonString)
 
         for(i in 0 until clockArray.clocks.size){
             val clock = clockArray.clocks[i]
             val oldClock = oldClocks.clocks[i]
             val event = clockEvents[i]
-
-            // Create the json object that'll be send
-            var clockObject = JSONObject()
-            clockObject.put("hand1",0)
-            clockObject.put("hand2",0)
 
             // Transition switch
             when(clock.state){
@@ -71,7 +78,7 @@ class Calibration(matriceSize: Int) {
                         Event.EvTooCLose -> clock.state = State.TOO_CLOSE
                         Event.EvNotDetected -> clock.state = State.NOT_DETECTED
                         Event.EvDefault -> {
-                            if(previousState == State.HAND_ID_UNKNOWN)
+                            if(previousState[i] == State.HAND_ID_UNKNOWN)
                                 clock.state = State.HAND_ID_KNOWN
                             else
                                 clock.state = State.HAND_ID_UNKNOWN
@@ -95,9 +102,11 @@ class Calibration(matriceSize: Int) {
                                 clock.angle1,
                                 clock.angle2
                             ) > 150){
-                            clockObject.put("hand1",45)
+                            (arrayJSON[i] as JSONObject).put("moveWP1",45)
+                            (arrayJSON[i] as JSONObject).put("moveWP2",0)
                         }else{
-                            clockObject.put("hand1",180)
+                            (arrayJSON[i] as JSONObject).put("moveWP1",180)
+                            (arrayJSON[i] as JSONObject).put("moveWP2",0)
                         }
 
                         // Generate the default event
@@ -145,15 +154,16 @@ class Calibration(matriceSize: Int) {
 
                         // If the hands are correctly detected, init them to 0.
                         if(clock.calibrated){
-                            clockObject.put("hand1",360-clock.angle1)
-                            clockObject.put("hand2",360-clock.angle2)
+                            (arrayJSON[i] as JSONObject).put("moveWP1",360-clock.angle1)
+                            (arrayJSON[i] as JSONObject).put("moveWP2",360-clock.angle2)
                         }
                     }
                     //-----------------------------------------------------------------------------
                     State.TOO_CLOSE -> {
                         // The hands are to close to be detected correctly.
                         // Move one hand (except if this clock was already calibrated).
-                        clockObject.put("hand1",180)
+                        (arrayJSON[i] as JSONObject).put("moveWP1",180)
+                        (arrayJSON[i] as JSONObject).put("moveWP2",0)
 
                         // Generate the default event
                         clockEvents[i] = Event.EvDefault
@@ -161,20 +171,21 @@ class Calibration(matriceSize: Int) {
                     //-----------------------------------------------------------------------------
                     State.NOT_DETECTED -> {
                         // State NOT_DETECTED do nothing, it wait for the next iteration
-                        previousState = oldClock.state
+                        previousState[i] = oldClock.state
 
                         // Generate the default event
                         clockEvents[i] = Event.EvDefault
                     }
                 }
             }
-
-            clocksArrayJSON.put(clockObject)
         }
 
         clockArray.copyTo(oldClocks)
-        var jsonObject = JSONObject()
-        jsonObject.put("clocks",clocksArrayJSON)
+
+        // Create the json object to be send
+        val jsonObject = JSONObject()
+        jsonObject.put("header","CALIBRATION")
+        jsonObject.put("body", arrayJSON)
 
         return jsonObject
     }

@@ -117,10 +117,10 @@ class Tools {
             val imageMat = Mat(grayMat.height(), grayMat.width(), CvType.CV_8UC4)
             Utils.bitmapToMat(src, imageMat)
 
-            //Apply a threshold, dilate it and find the contours
+            //Apply canny, dilate it and find the contours
             val canny = Mat(grayMat.height(),grayMat.width(), CvType.CV_8UC4)
-            //Imgproc.threshold(grayMat, threshold,127.0,255.0, Imgproc.THRESH_BINARY_INV)
-            Imgproc.Canny(grayMat,canny,10.0,100.0)
+            Imgproc.threshold(grayMat, canny,127.0,255.0, Imgproc.THRESH_BINARY_INV)
+            //Imgproc.Canny(grayMat,canny,10.0,100.0)
             val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
                 Size(6.0,6.0))
             Imgproc.morphologyEx(canny,canny,Imgproc.MORPH_DILATE,kernel)
@@ -129,6 +129,15 @@ class Tools {
             val hierarchy = Mat()
             Imgproc.findContours(canny,contours,hierarchy, Imgproc.RETR_EXTERNAL,
                 Imgproc.CHAIN_APPROX_SIMPLE)
+
+
+            val matTest = Mat(src.height,src.width,CvType.CV_8UC4)
+            Utils.bitmapToMat(src,matTest)
+            for(i in contours.indices){
+                Imgproc.drawContours(matTest,contours,i, Scalar(255.0,0.0,0.0),5)
+            }
+
+
 
             //Get the biggest contour
             var area = 0.0

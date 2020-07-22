@@ -22,7 +22,6 @@ import androidx.core.content.FileProvider
 import com.example.clockhandsdetection091.*
 import com.example.clockhandsdetection091.enumeration.Event
 import com.example.clockhandsdetection091.utils.Calibration
-import com.example.clockhandsdetection091.utils.HandsDetection
 import com.example.clockhandsdetection091.utils.Tools
 import org.opencv.android.Utils
 import org.opencv.core.*
@@ -31,7 +30,22 @@ import java.io.File
 import java.io.IOException
 import java.util.*
 
-
+/**
+ * Calibration activity. Calibrate the matrice device in 3 steps.
+ * 1. Take a picture of the device.
+ * 2. Compute the picture to detect the clock's centers, then the clock's hands positions.
+ * 3. Calibrate the device using the found positions.
+ * Those steps need to be done multiple times to completely calibrate the device.
+ * @property [bmpMatrice] bitmap of the matrice picture, displayed on screen.
+ * @property [matriceMat] mat of the matrice picture.
+ * @property [matList] mat list of each clock.
+ * @property [clockArray] array of each clock and their params (center, state, angles,...).
+ * @property [calibrate] used to calibrate each clock.
+ * @property [currentPicturePath] the current path of the picture taken.
+ * @property [isComputed] has the picture been computed?
+ * @property [isPictureTaken] has the picture been taken?
+ * @author Ruben De Campos
+ */
 class CalibrationActivity : AppCompatActivity() {
 
     val TAG = "HandsDetectionActivity"
@@ -44,16 +58,19 @@ class CalibrationActivity : AppCompatActivity() {
     lateinit var txtView1: TextView
     lateinit var txtView2: TextView
 
-
     // variables
-    var bmpMatrice: Bitmap? = null
-    var matriceMat: Mat? = null
-    val matList: MutableList<Mat?> = mutableListOf()
-    var clockArray: Clocks? = null
-    var calibrate: Calibration? = null
-    var currentPicturePath: String = ""
-    var isComputed = false
+    private var bmpMatrice: Bitmap? = null
+    private var matriceMat: Mat? = null
+    private val matList: MutableList<Mat?> = mutableListOf()
+    private var clockArray: Clocks? = null
+    private var calibrate: Calibration? = null
+    private var currentPicturePath: String = ""
+    private var isComputed = false
+    private var isPictureTaken = false
 
+    /**
+     * On the activity creation.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_calibration)
@@ -70,8 +87,9 @@ class CalibrationActivity : AppCompatActivity() {
         val intent = intent
         MATRICE_ROW = intent.getStringExtra("nbrRow").toInt()
         MATRICE_COL = intent.getStringExtra("nbrCol").toInt()
+        val jsonString = intent.getStringExtra("jsonString")
         clockArray = Clocks(MATRICE_COL * MATRICE_ROW)
-        calibrate = Calibration(clockArray!!.clocks.size)
+        calibrate = Calibration(clockArray!!.clocks.size,jsonString)
 
         // On the activity creation, take a first picture
         takePicture()
@@ -83,29 +101,36 @@ class CalibrationActivity : AppCompatActivity() {
 
         // On the btnCompute click, start the detection
         btnCompute.setOnClickListener{
-            centersDetection()
-            handsDetection()
-            isComputed = true
+            if(isPictureTaken){
+                centersDetection()
+                handsDetection()
+                isComputed = true
+                isPictureTaken = false;
+            }else{
+                Toast.makeText(this,"Please take a picture first",
+                    Toast.LENGTH_SHORT).show()
+            }
         }
 
         // On the btnAngle click, put in extra the detected angles and the action to do for the
         // matrice.
         btnCalibrate.setOnClickListener{
             if(isComputed){
-                val actionJSON = calibrate!!.calibration(clockArray!!)
-                val sendAction = Intent(this, ResultActivity::class.java)
-                sendAction.putExtra("clock array",clockArray.toString())
-                sendAction.putExtra("action",actionJSON.toString())
-                startActivity(sendAction)
+                val actionJSON = calibrate!!.calibrate(clockArray!!)
+                val intent = Intent(this, ResultActivity::class.java)
+                intent.putExtra("clock array",clockArray.toString())
+                intent.putExtra("action",actionJSON.toString())
+                startActivity(intent)
+                isComputed = false
             }else{
                 Toast.makeText(this,"Please compute first",Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    //------------------------------------------------------------------------------------
-    // Center detection. Detect each clocks centers to, then detect the hands positions.
-    //------------------------------------------------------------------------------------
+    /**
+     * Center detection. Detect each clocks centers to, then detect the hands positions.
+     */
     fun centersDetection() {
         matList.clear()
 
@@ -206,12 +231,14 @@ class CalibrationActivity : AppCompatActivity() {
     }
 
 
-    //------------------------------------------------------------------------------------
-    // From the given list of circles, get the ones that are most likely to be clock
-    // centers.
-    // For that we create approximated centers in function of the number of rows and columns
-    // of the matrice and then, get the closest circles to these approximated centers.
-    //------------------------------------------------------------------------------------
+    /**
+     * From the given list of circles, get the ones that are most likely to be clock centers.
+     * For that we create approximated centers in function of the number of rows and columns
+     * of the matrice and then, get the closest circles to these approximated centers.
+     * @param [src] the mat object of the matrice.
+     * @param [inList] input list of every circles found.
+     * @return the list of points corresponding to each center.
+     */
     fun findClockCenter(src: Mat, inList: LinkedList<DoubleArray>): LinkedList<Point>{
         val centerGap = src.height()/(MATRICE_ROW).toDouble()  // Supposed gap between two center
         val centers = LinkedList<Point>()
@@ -247,10 +274,9 @@ class CalibrationActivity : AppCompatActivity() {
         return centers
     }
 
-    //------------------------------------------------------------------------------------
-    // Apply the Hough line detection, to detect and calculate the angles of the clock
-    // hands.
-    //------------------------------------------------------------------------------------
+    /**
+     * Apply the Hough line detection, to detect and calculate the angles of the clock hands.
+     */
     fun handsDetection(){
         val out = Mat()
         matriceMat!!.copyTo(out)
@@ -346,11 +372,17 @@ class CalibrationActivity : AppCompatActivity() {
         txtView2.text = "Merged lines detected: "+nbrMergedLines
     }
 
-    //------------------------------------------------------------------------------------
-    // Called by the handsDetection method. This function find the hands angles in
-    // a given list of lines by calculating the intersection between each lines, and if a
-    // few condition are fulfilled, it's a tip of a hand and the angle is added to the list.
-    //------------------------------------------------------------------------------------
+    /**
+     * Called by the handsDetection method. This function find the hands angles in
+     * a given list of lines by calculating the intersection between each lines, and if a
+     * few condition are fulfilled, it's a tip of a hand and the angle is added to the list.
+     * @param [inLines] input list of lines.
+     * @param [outLines] output list of lines corresponding to the clock's hands.
+     * @param [center] center point of this clock.
+     * @param [minRadius] minimal radius, the intersections must within that range to the lines.
+     * @param [bigRadius] big radius, the intersections must be out of that range to the center.
+     * @return the list of each clock hand's angles.
+     */
     fun findHandsInLines(inLines: LinkedList<Line>, outLines: LinkedList<Line>, center: Point,
                          minRadius: Double, bigRadius: Double): LinkedList<Double>
     {
@@ -435,21 +467,25 @@ class CalibrationActivity : AppCompatActivity() {
         return angles
     }
 
-    //------------------------------------------------------------------------------------
-    // Create the option menu. Instead of computing everything at once, the menu allow the
-    // user to compute each part individually.
-    //------------------------------------------------------------------------------------
+    /**
+     * Create the option menu. Instead of computing everything at once, the menu allow the
+     * user to compute each part individually.
+     * @param [menu]
+     * @return
+     */
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater: MenuInflater = menuInflater
         inflater.inflate(R.menu.detection_menu,menu)
         return true
     }
 
-    //------------------------------------------------------------------------------------
-    // On each options Item selected in the menu, do something.
-    //------------------------------------------------------------------------------------
+    /**
+     * On each options Item selected in the menu, do something.
+     * @param [item] item selected.
+     * @return
+     */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        var id:Int? = item.itemId
+        val id:Int? = item.itemId
 
         if(id == R.id.action_detect_centers){
             centersDetection()
@@ -463,29 +499,29 @@ class CalibrationActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    //------------------------------------------------------------------------------------
-    // On the activity result, apply the perspective transformation and display the
-    // picture.
-    //------------------------------------------------------------------------------------
+    /**
+     * On the activity result, apply the perspective transformation and display the picture.
+     * @param [requestCode]
+     * @param [resultCode]
+     * @param [data]
+     */
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             REQUEST_IMAGE_CAPTURE -> if (resultCode == Activity.RESULT_OK) {
                 // Find the contour of the matrice and apply a warpPerspective on it.
                 val bmp = BitmapFactory.decodeFile(currentPicturePath)
-                bmpMatrice =
-                    Tools.transformRectPerspective(
-                        bmp,
-                        MATRICE_ROW / MATRICE_COL.toDouble()
-                    )
+                bmpMatrice = Tools.transformRectPerspective(bmp,
+                    MATRICE_ROW / MATRICE_COL.toDouble())
                 ivPicture.setImageBitmap(bmpMatrice)
+                isPictureTaken = true;
             }
         }
     }
 
-    //------------------------------------------------------------------------------------
-    // Start the ACTION_IMAGE_CAPTURE intent to take a picture.
-    //------------------------------------------------------------------------------------
+    /**
+     * Start the ACTION_IMAGE_CAPTURE intent to take a picture.
+     */
     private fun takePicture(){
         // Request the permission to use the camera if not already granted
         if(ContextCompat.checkSelfPermission(this,android.Manifest.permission.CAMERA) !=
@@ -511,9 +547,10 @@ class CalibrationActivity : AppCompatActivity() {
         }
     }
 
-    //------------------------------------------------------------------------------------
-    // Get the output file
-    //------------------------------------------------------------------------------------
+    /**
+     * Get the output file. Update the currentPicturePath property.
+     * @return the file object.
+     */
     private fun getOutputMediaFile(): File? {
         var state = Environment.getExternalStorageState()
         if(state.equals(Environment.MEDIA_MOUNTED)) {
