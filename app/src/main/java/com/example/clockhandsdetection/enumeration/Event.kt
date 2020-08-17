@@ -1,4 +1,4 @@
-package com.example.clockhandsdetection091.enumeration
+package com.example.clockhandsdetection.enumeration
 
 enum class Event {
     EvDefault, EvNotDetected, EvTooCLose

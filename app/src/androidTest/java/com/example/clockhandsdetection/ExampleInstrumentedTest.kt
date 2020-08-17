@@ -1,4 +1,4 @@
-package com.example.clockhandsdetection091
+package com.example.clockhandsdetection
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

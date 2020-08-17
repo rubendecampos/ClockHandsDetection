@@ -1,4 +1,4 @@
-package com.example.clockhandsdetection091
+package com.example.clockhandsdetection
 
 import org.junit.Test
 

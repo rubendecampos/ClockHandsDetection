@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.clockhandsdetection091">
+    package="com.example.clockhandsdetection">
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
@@ -16,7 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".activities.LaunchingActivity"
+            android:name="com.example.clockhandsdetection.activities.LaunchingActivity"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity">
                 <intent-filter>
@@ -25,20 +25,20 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activities.BluetoothDevicesActivity"
+            android:name="com.example.clockhandsdetection.activities.BluetoothDevicesActivity"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity" />
 
         <activity
-            android:name=".activities.ResultActivity"
+            android:name="com.example.clockhandsdetection.activities.ResultActivity"
             android:screenOrientation="landscape"
             tools:ignore="LockedOrientationActivity" />
         <activity
-            android:name=".activities.CalibrationActivity"
+            android:name="com.example.clockhandsdetection.activities.CalibrationActivity"
             android:screenOrientation="landscape"
             tools:ignore="LockedOrientationActivity" />
         <activity
-            android:name=".activities.MainActivity"
+            android:name="com.example.clockhandsdetection.activities.MainActivity"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity" />
 

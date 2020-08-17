@@ -1,11 +1,12 @@
-package com.example.clockhandsdetection091.activities
+package com.example.clockhandsdetection.activities
 
+import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
-import com.example.clockhandsdetection091.R
+import com.example.clockhandsdetection.R
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -46,8 +47,8 @@ class ResultActivity : AppCompatActivity() {
             actionString += "Move clock $i, hand1 by $hand1 and hand2 by $hand2\n\r"
         }
 
-        txtAngles.text = clockArrayString
-        txtAction.text = actionString
+        txtAngles.text = "Angles: \n" + clockArrayString
+        txtAction.text =  actionString
 
         // On send button clicked, end the activity. It'll send the jsonObject to the connected
         // device.

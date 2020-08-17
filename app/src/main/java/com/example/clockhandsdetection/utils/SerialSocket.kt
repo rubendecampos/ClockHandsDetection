@@ -1,10 +1,11 @@
-package com.example.clockhandsdetection091.activities
+package com.example.clockhandsdetection.activities
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
 import android.os.AsyncTask
 import android.util.Log
 import android.widget.Toast
@@ -12,7 +13,15 @@ import java.io.IOException
 import java.io.OutputStream
 import java.util.*
 
-class SerialSocket(val context: Context){
+/**
+ * Class SerialSocket. Provide a Serial Connection with a Bluetooth device using a Socket.
+ * Inherit from BroadcastReceiver to receive data from other activity, in our case from the
+ * bluetooth device.
+ * @property [outputStream] used to write data to the device.
+ * @property [isConnected] used to know if the device is connected.
+ * @author Ruben De Campos
+ */
+class SerialSocket(val context: Context): BroadcastReceiver(){
 
     companion object{
         private val TAG = "SerialSocket"
@@ -27,11 +36,18 @@ class SerialSocket(val context: Context){
         var isConnected: Boolean = false
     }
 
+    /**
+     * Try to connect to a bluetooth device with its address. Start an AsyncTask.
+     * @param [address]
+     */
     fun connect(address: String){
         deviceAddress = address
         ConnectToDevice(this.context).execute()
     }
 
+    /**
+     * Disconnect from the bluetooth device.
+     */
     fun disconnect(){
         if(bluetoothSocket!=null){
             try{
@@ -44,9 +60,9 @@ class SerialSocket(val context: Context){
         }
     }
 
-    //------------------------------------------------------------------------------------
-    // Async task that'll connect to the selected device
-    //------------------------------------------------------------------------------------
+    /**
+     * Async task that'll connect to the selected device.
+     */
     private class ConnectToDevice(private val context: Context): AsyncTask<Void, Void, String>() {
         private var connectSuccess = true
 
@@ -82,8 +98,21 @@ class SerialSocket(val context: Context){
                 Toast.makeText(context,"Couldn't connect",Toast.LENGTH_SHORT).show()
             }else{
                 isConnected = true
-                Log.e(TAG, "Connected")
+                Log.d(TAG, "Connected")
                 Toast.makeText(context,"Connected",Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    /**
+     * Receive the DISCONNECTED signal from the bluetooth device.
+     * @param [context] context where the message came from.
+     * @param [intent] we read his action.
+     */
+    override fun onReceive(context: Context?, intent: Intent?){
+        when(intent!!.action){
+            BluetoothDevice.ACTION_ACL_DISCONNECTED -> {
+                isConnected = false
             }
         }
     }

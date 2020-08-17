@@ -37,7 +37,7 @@
                 android:id="@+id/btnPicture"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/grey"
+                android:background="@drawable/button_background"
                 android:textColor="@color/white"
                 android:layout_margin="5dp"
                 android:text="@string/picture"/>
@@ -50,7 +50,7 @@
                 android:id="@+id/btnCompute"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/grey"
+                android:background="@drawable/button_background"
                 android:textColor="@color/white"
                 android:layout_margin="5dp"
                 android:text="@string/compute" />
@@ -63,7 +63,7 @@
                 android:id="@+id/btnCalibrate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/grey"
+                android:background="@drawable/button_background"
                 android:textColor="@color/white"
                 android:layout_margin="5dp"
                 android:text="@string/calibrate"  />

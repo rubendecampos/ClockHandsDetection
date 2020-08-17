@@ -1,8 +1,14 @@
-package com.example.clockhandsdetection091
+package com.example.clockhandsdetection.models
 
-import com.example.clockhandsdetection091.enumeration.State
+import com.example.clockhandsdetection.enumeration.State
 import org.opencv.core.Point
 
+/**
+ * Class that contain the list of clocks.
+ * Each clock has a state, a center, two angles for the hands, and if it has been calibrated.
+ * @property [clocks] list of clocks.
+ * @author Ruben De Campos
+ */
 class Clocks(size: Int) {
 
     var clocks: ArrayList<Clock> = ArrayList()
@@ -13,7 +19,10 @@ class Clocks(size: Int) {
         }
     }
 
-    // Copy the content of clocks into a given Clocks object
+    /**
+     * Copy the content of clocks into a given Clocks object.
+     * @param [clockArray] array to copy the clock's list into.
+     */
     fun copyTo(clockArray: Clocks){
         if(clockArray.clocks.size == clocks.size) {
             for (i in 0 until clocks.size) {
@@ -26,6 +35,9 @@ class Clocks(size: Int) {
         }
     }
 
+    /**
+     * @return a string of the clock's list.
+     */
     override fun toString(): String{
         var string = ""
 

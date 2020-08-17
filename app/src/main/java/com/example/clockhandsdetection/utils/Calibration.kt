@@ -1,13 +1,13 @@
-package com.example.clockhandsdetection091.utils
+package com.example.clockhandsdetection.utils
 
-import com.example.clockhandsdetection091.Clocks
-import com.example.clockhandsdetection091.enumeration.Event
-import com.example.clockhandsdetection091.enumeration.State
+import com.example.clockhandsdetection.models.Clocks
+import com.example.clockhandsdetection.enumeration.Event
+import com.example.clockhandsdetection.enumeration.State
 import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Class used for the calibration of each clocks of the matrice device.
+ * Class used for the calibration of each clocks of the matrix device.
  * @property [clockEvents] contain the event that will be processed every calibration() calls.
  * @property [previousState] contain the previous state of each clock.
  * @property [oldClocks] contain the old clock array. Of the previous calibration call.
@@ -98,10 +98,7 @@ class Calibration(matriceSize: Int, var jsonString: String) {
                         // First step in the calibration.
                         // We don't know which angle belong to which hand, so wo move the hand 1 to
                         // detect it in the next step.
-                        if(Tools.handsAngle(
-                                clock.angle1,
-                                clock.angle2
-                            ) > 150){
+                        if(Tools.handsAngle(clock.angle1, clock.angle2) > 150){
                             (arrayJSON[i] as JSONObject).put("moveWP1",45)
                             (arrayJSON[i] as JSONObject).put("moveWP2",0)
                         }else{
@@ -175,6 +172,11 @@ class Calibration(matriceSize: Int, var jsonString: String) {
 
                         // Generate the default event
                         clockEvents[i] = Event.EvDefault
+                    }
+                    //-----------------------------------------------------------------------------
+                    State.CALIBRATED -> {
+                        clock.angle1 = 0
+                        clock.angle2 = 0
                     }
                 }
             }

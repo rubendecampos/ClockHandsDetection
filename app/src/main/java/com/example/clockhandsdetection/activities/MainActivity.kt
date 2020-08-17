@@ -1,12 +1,13 @@
-package com.example.clockhandsdetection091.activities
+package com.example.clockhandsdetection.activities
 
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.*
+import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.appcompat.app.AppCompatActivity
-import com.example.clockhandsdetection091.R
+import com.example.clockhandsdetection.R
+import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONArray
 import org.json.JSONObject
 import org.opencv.android.OpenCVLoader
@@ -19,12 +20,15 @@ import org.opencv.android.OpenCVLoader
  * @property [clockIndex][handIndex] indexes to select a specific clock hand in the matrcie.
  * @author Ruben De Campos
  */
-class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
+class MainActivity : AppCompatActivity(), OnSeekBarChangeListener{
 
     val TAG = "MainActivity"
 
-    private var nbrCol = 0
-    private var nbrRow = 0
+    private lateinit var switch: Switch
+
+    private var nbrCol = 14
+    private var nbrRow = 6
+    private var progressValue = 0
     private lateinit var jsonString: String
 
     /**
@@ -54,25 +58,18 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         val btnGotoZero: Button = findViewById(R.id.btnGotoZero)
         val txtRowIndex: EditText = findViewById(R.id.txtRowIndex)
         val txtColumnIndex: EditText = findViewById(R.id.txtColumnIndex)
-        val txtHandIndex: EditText = findViewById(R.id.txtHandIndex)
+        switch = findViewById(R.id.handIndex)
         val txtText: EditText = findViewById(R.id.txtText)
-        val spnProperty: Spinner = findViewById(R.id.spnProperty)
+        val radioBtn3x2: RadioButton = findViewById(R.id.radioBtn3x2)
+        val radioBtn3x8: RadioButton = findViewById(R.id.radioBtn3x8)
+        val radioBtn6x14: RadioButton = findViewById(R.id.radioBtn6x14)
+        val seekBar: SeekBar = findViewById(R.id.seekBar)
 
-        // create the spinner
-        val spinnerList: MutableList<String> = arrayListOf()
-        spinnerList.add("matrice : 3x2")
-        spinnerList.add("matrice : 3x8")
-        spinnerList.add("matrice : 6x14")
-
-        // Set the Spinner and is ArrayAdapter
-        spnProperty.onItemSelectedListener = this
-        val arrayAdapter = ArrayAdapter(this,android.R.layout.simple_spinner_item,spinnerList)
-        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spnProperty.adapter = arrayAdapter
+        jsonString = resources.openRawResource(R.raw.json_file6x14)
+            .bufferedReader().use { it.readText() }
 
         // On start calibration button click
         btnStartCalibration.setOnClickListener {
-
             // Start the next Activity
             val intent = Intent(this,
                 CalibrationActivity::class.java)
@@ -89,7 +86,13 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             val rowIndex = txtRowIndex.text.toString().toInt() - 1
             val columnIndex = txtColumnIndex.text.toString().toInt() - 1
             val clockIndex = rowIndex*nbrCol + columnIndex
-            val handIndex = txtHandIndex.text.toString().toInt() - 1
+
+            // The position of the switch give the watchpointer index
+            var handIndex: Int
+            if(switch.isChecked)
+                handIndex = 1
+            else
+                handIndex = 0
 
             // Get from the jsonArray in the jsonString, the jsonObject that contain the processorID
             // and clockID in function of this clockIndex.
@@ -99,7 +102,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             jsonClock.put("watchpointerID",handIndex)
 
             // Create the json object and send it
-            val jsonObject: JSONObject = JSONObject()
+            val jsonObject = JSONObject()
             jsonObject.put("header","PLUS")
             jsonObject.put("body",jsonClock)
 
@@ -112,7 +115,13 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             val rowIndex = txtRowIndex.text.toString().toInt() - 1
             val columnIndex = txtColumnIndex.text.toString().toInt() - 1
             val clockIndex = rowIndex*nbrCol + columnIndex
-            val handIndex = txtHandIndex.text.toString().toInt() - 1
+
+            // The position of the switch give the watchpointer index
+            var handIndex: Int
+            if(switch.isChecked)
+                handIndex = 1
+            else
+                handIndex = 0
 
             // Get from the jsonArray in the jsonString, the jsonObject that contain the processorID
             // and clockID in function of this clockIndex.
@@ -122,7 +131,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             jsonClock.put("watchpointerID",handIndex)
 
             // Create the json object and send it
-            val jsonObject: JSONObject = JSONObject()
+            val jsonObject = JSONObject()
             jsonObject.put("header","MINUS")
             jsonObject.put("body",jsonClock)
 
@@ -135,7 +144,13 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             val rowIndex = txtRowIndex.text.toString().toInt() - 1
             val columnIndex = txtColumnIndex.text.toString().toInt() - 1
             val clockIndex = rowIndex*nbrCol + columnIndex
-            val handIndex = txtHandIndex.text.toString().toInt() - 1
+
+            // The position of the switch give the watchpointer index
+            var handIndex: Int
+            if(switch.isChecked)
+                handIndex = 1
+            else
+                handIndex = 0
 
             // Get from the jsonArray in the jsonString, the jsonObject that contain the processorID
             // and clockID in function of this clockIndex.
@@ -145,12 +160,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             jsonClock.put("watchpointerID",handIndex)
 
             // Create the json object and send it
-            val jsonObject: JSONObject = JSONObject()
+            val jsonObject = JSONObject()
             jsonObject.put("header","RESETZERO")
             jsonObject.put("body",jsonClock)
 
             sendToDevice(jsonObject.toString().toByteArray())
         }
+
+        // Set the seek bar listener
+        seekBar.setOnSeekBarChangeListener(this)
 
         // On send text button click
         btnSendText.setOnClickListener {
@@ -213,6 +231,26 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
             sendToDevice(jsonObject.toString().toByteArray())
         }
+
+        // On a radio button click
+        radioBtn3x2.setOnClickListener{
+            jsonString = resources.openRawResource(R.raw.json_file2x3)
+                .bufferedReader().use { it.readText() }
+            nbrRow = 3
+            nbrCol = 2
+        }
+        radioBtn3x8.setOnClickListener{
+            jsonString = resources.openRawResource(R.raw.json_file3x8)
+                .bufferedReader().use { it.readText() }
+            nbrRow = 3
+            nbrCol = 8
+        }
+        radioBtn6x14.setOnClickListener{
+            jsonString = resources.openRawResource(R.raw.json_file6x14)
+                .bufferedReader().use { it.readText() }
+            nbrRow = 6
+            nbrCol = 14
+        }
     }
 
     /**
@@ -228,36 +266,68 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     }
 
     /**
-     * If nothing has been selected in the spinner.
+     * On progress changed in a seekBar.
+     * @param [seekBar]
+     * @param [progress]
+     * @param [fromUser]
      */
-    override fun onNothingSelected(parent: AdapterView<*>?) {
-        Toast.makeText(this,"Please select a matrice property",Toast.LENGTH_SHORT).show()
+    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+        val stepNumber = progress - progressValue
+
+        // Get the clock and hand index entered by the user.
+        val rowIndex = txtRowIndex.text.toString().toInt() - 1
+        val columnIndex = txtColumnIndex.text.toString().toInt() - 1
+        val clockIndex = rowIndex*nbrCol + columnIndex
+
+        // The position of the switch give the watchpointer index
+        var handIndex: Int
+        if(switch.isChecked)
+            handIndex = 1
+        else
+            handIndex = 0
+
+        // Get from the jsonArray in the jsonString, the jsonObject that contain the processorID
+        // and clockID in function of this clockIndex.
+        val jsonArray = JSONArray(jsonString)
+        val jsonClock = jsonArray[clockIndex] as JSONObject
+        // Change the watchpointID
+        jsonClock.put("watchpointerID",handIndex)
+
+        if(stepNumber > 0){
+            // Create the json object and send it
+            val jsonObject = JSONObject()
+            jsonObject.put("header","PLUS")
+            jsonObject.put("body",jsonClock)
+
+            sendToDevice(jsonObject.toString().toByteArray())
+        }else{
+            // Create the json object and send it
+            val jsonObject = JSONObject()
+            jsonObject.put("header","MINUS")
+            jsonObject.put("body",jsonClock)
+
+            sendToDevice(jsonObject.toString().toByteArray())
+        }
+
+        // Update the progressValue
+        progressValue = progress
     }
 
     /**
-     * On item selected in the spinner.
+     * On start tracking touch.
+     * @param [seekBar]
      */
-    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        // Update the nbrRow, nbrCol and jsonArray var.
-        when(position){
-            0 -> {
-                jsonString = resources.openRawResource(R.raw.json_file2x3)
-                    .bufferedReader().use { it.readText() }
-                nbrRow = 3
-                nbrCol = 2
-            }
-            1 -> {
-                jsonString = resources.openRawResource(R.raw.json_file3x8)
-                    .bufferedReader().use { it.readText() }
-                nbrRow = 3
-                nbrCol = 8
-            }
-            2 -> {
-                jsonString = resources.openRawResource(R.raw.json_file6x14)
-                    .bufferedReader().use { it.readText() }
-                nbrRow = 6
-                nbrCol = 14
-            }
-        }
+    override fun onStartTrackingTouch(seekBar: SeekBar?) {
+        // Get the progress value
+        progressValue = seekBar!!.progress
+    }
+
+    /**
+     * On stop tracking touch
+     * @param [seekBar]
+     */
+    override fun onStopTrackingTouch(seekBar: SeekBar?) {
+        // Reset the seek bar position
+        seekBar!!.progress = 30
     }
 }

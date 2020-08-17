@@ -1,11 +1,12 @@
-package com.example.clockhandsdetection091.activities
+package com.example.clockhandsdetection.activities
 
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
-import com.example.clockhandsdetection091.R
+import com.example.clockhandsdetection.R
 
 /**
  * First activity to show when the app is started.
@@ -20,7 +21,7 @@ class LaunchingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_launching)
 
-        val btnFindProduct: Button = findViewById(R.id.btnFindProduct)
+        val launchingScreen: LinearLayout = findViewById(R.id.launchingScreen)
         val ivBluetooth: ImageView = findViewById(R.id.ivBluetooth)
         val ivHpnosia: ImageView = findViewById(R.id.ivHypnosia)
 
@@ -30,8 +31,9 @@ class LaunchingActivity : AppCompatActivity() {
         myDrawable = resources.getDrawable(R.drawable.bluetooth)
         ivBluetooth.setImageDrawable(myDrawable)
 
-        // On "find product" button click
-        btnFindProduct.setOnClickListener{
+
+        // On click anywhere on the screen
+        launchingScreen.setOnClickListener{
             val intent = Intent(this, BluetoothDevicesActivity::class.java)
             startActivity(intent)
         }
